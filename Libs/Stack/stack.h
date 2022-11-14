@@ -4,8 +4,10 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef int Elem_t;
-const Elem_t Poisoned_cell = 57;
+#include "../../Tree/tree.h"
+
+typedef Tree_node* Elem_t;
+const Elem_t Poisoned_cell = nullptr;
 
 #define PFORMAT "%-10d"
 

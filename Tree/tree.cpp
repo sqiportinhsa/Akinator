@@ -30,8 +30,6 @@ int real_tree_init(Tree* tree, const char *file, const char *func, int line) {
 
     init_cr_logs(tree->logs, file, func, line);
 
-    memory_allocate(tree->path, 1, Stack);
-
     return NO_TREE_ERR;
 }
 
@@ -77,13 +75,8 @@ int tree_dtor(Tree *tree) {
     
     free_node(tree->head);
 
-    StackDestr(tree->path);
-
-    free(tree->path);
-
     tree->head      = nullptr;
     tree->logs      = nullptr;
-    tree->path      = nullptr;
 }
 
 void free_node(Tree_node *node) {

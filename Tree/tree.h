@@ -1,5 +1,5 @@
-#include "logging.h"
-#include "Libs/Stack/stack.h"
+#include "../Libs/logging.h"
+#include "../Libs/Stack/stack.h"
 
 struct Tree_node {
     bool       is_saved = false;
@@ -11,7 +11,6 @@ struct Tree_node {
 
 struct Tree {
     Tree_node*       head      = nullptr;
-    Stack*           path      = nullptr;
     Creation_logs*   logs      = nullptr;
 };
 
