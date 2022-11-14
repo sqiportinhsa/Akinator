@@ -1,5 +1,19 @@
+#ifndef TREE_H
+#define TREE_H
+
 #include "../Libs/logging.h"
 #include "../Libs/Stack/stack.h"
+
+
+static const char *UNSAVED_FILL__COLOR = "#BEA0A0";
+static const char *UNSAVED_FRAME_COLOR = "#361C1C";
+
+static const char *SAVED_FILL__COLOR = "#9AA5BB";
+static const char *SAVED_FRAME_COLOR = "#232D42";
+
+static const char   *SAVED_ARROW_COLOR = "#54303c";
+static const char *UNSAVED_ARROW_COLOR = "#303C54";
+
 
 struct Tree_node {
     bool       is_saved = false;
@@ -18,23 +32,13 @@ struct Colors {
     const char* frame = SAVED_FRAME_COLOR;
     const char* fill  = SAVED_FILL__COLOR;
     const char* arrow = SAVED_ARROW_COLOR;
-}
+};
 
 enum Tree_err {
     NO_TREE_ERR = 0,
     NOT_ENOUGHT_MEM = 1,
     CANNOT_GENER_PIC = 2,
 };
-
-
-static const char *UNSAVED_FILL__COLOR = "#BEA0A0";
-static const char *UNSAVED_FRAME_COLOR = "#361C1C";
-
-static const char *SAVED_FILL__COLOR = "#9AA5BB";
-static const char *SAVED_FRAME_COLOR = "#232D42";
-
-static const char   *SAVED_ARROW_COLOR = "#54303c";
-static const char *UNSAVED_ARROW_COLOR = "#303C54";
 
 
 
@@ -71,3 +75,5 @@ void real_dump_tree(const Tree *tree, const char *file, const char *func, int li
                                                                const char *message, ...);
 
 void generate_graph_code(Tree *tree);
+
+#endif

@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "tree.h"
-#include "file_reading.hpp"
+#include "Libs/file_reading.hpp"
 
 
 static void generate_node_code(Tree_node *node);
@@ -82,6 +82,10 @@ int tree_dtor(Tree *tree) {
 void free_node(Tree_node *node) {
     if (node == nullptr) {
         return;
+    }
+
+    if (!node->is_saved) {
+        free(node->data);
     }
 
     free_node(node->left);

@@ -6,7 +6,7 @@
 
 #include "../../Tree/tree.h"
 
-typedef Tree_node* Elem_t;
+typedef struct Tree_node* Elem_t;
 const Elem_t Poisoned_cell = nullptr;
 
 #define PFORMAT "%-10d"

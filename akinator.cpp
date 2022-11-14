@@ -7,7 +7,36 @@
 
 const int Max_input_len = 50;
 
-/*------------------------------ EXTERNAL FUNCTIONS ----------------------------------------------*/
+/*--------------------------- INTERNAL FUNCTIONS DECLARATION -------------------------------------*/
+//------------ PARSING INPUT ----------------//
+
+static bool get_tree(Akinator *akinator);
+
+static bool get_head(Akinator *akinator, size_t *ip);
+
+static bool get_left (Akinator *akinator, Tree_node *parent, size_t *ip);
+static bool get_right(Akinator *akinator, Tree_node *parent, size_t *ip);
+
+static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_left);
+
+//--------------- MODES ---------------------//
+
+static int get_mode();
+
+//------------- GUESS MODE ------------------//
+
+static void run_quess_mode(Akinator *akinator);
+
+static Tree_node ask_questions(const Akinator *akinator, Tree_node *node);
+
+static Tree_node ask_question (const Akinator *akinator, Tree_node *node);
+
+static Answers get_answer();
+
+static void celebrate_win(Answers ans);
+
+
+/*-------------------------------- EXTERNAL FUNCTIONS --------------------------------------------*/
 
 const char* get_input_name(int argc, const char **argv) {
     CLArgs args = parse_cmd_line(argc, argv);
@@ -136,7 +165,7 @@ static bool get_left (Akinator *akinator, Tree_node *parent, size_t *ip) {
     return get_node(akinator, parent, ip, true);
 }
 
-static bool get_right(Akinator *akinator, Tree_node *parent, size_t ip) {
+static bool get_right(Akinator *akinator, Tree_node *parent, size_t *ip) {
     return get_node(akinator, parent, ip, false);
 }
 
@@ -226,7 +255,7 @@ static void run_quess_mode(Akinator *akinator) {
             continue;
         }
 
-        add_new_node(akinator);
+        add_character(akinator);
     }
 
 }
@@ -312,6 +341,43 @@ static void celebrate_win(Answers ans) {
     }
 }
 
+static void add_character(Akinator *akinator, Tree_node *node) {
+    printf("I'm sorry but i don't know who was guessed. Stupid programm!\n"
+           "Can you help me become better by telling who was you character? [yes/no]\n");
+
+    Answer ans = get_answer();
+
+    if (ans != Yes) {
+        printf("What a pity! Anyway thank you for the game. Let's return to mode choosing.\n");
+        return;
+    }
+
+    printf("Thank you! Enter your character's name please\n");
+
+    char *new_character_name = calloc(Max_input_len, sizeof(char));
+
+    get_user_input(new_character_name);
+
+    printf("Please, give the difference between %s and %s.", node->data, new_character_name);
+    printf("Unlike %s your character...\n");
+
+    char *difference = calloc(Max_input_len, sizeof(char));
+
+    get_user_input(difference);
+
+    char *old_character = node->data;
+
+    init_left_node (node, new_character_name);
+    init_right_node(node, old_character);
+
+    node->data = difference;
+
+    node->is_saved        = false;
+    node->left->is_saved  = false;
+    node->right->is_saved = true;
+
+}
+
 
 /*-------------------------------- OTHER STATIC FUNCTIONS ----------------------------------------*/
 
@@ -330,4 +396,6 @@ static void get_user_input(char *input) {
     assert(input != nullptr);
 
     fgets(input, Max_input_len, stdin);
+
+    *(strchr (input, '\n')) = '\0';
 }
