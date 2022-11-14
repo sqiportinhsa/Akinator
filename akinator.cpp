@@ -257,7 +257,7 @@ static int get_mode() {
 
     int mode = 0;
 
-    if (scanf("%d", &mode) != 1) {
+    if (scanf("%d%*c", &mode) != 1) {
         printf("You failed mode choosing. Please try again.\n");
         return get_mode();
     }
@@ -288,10 +288,14 @@ static void run_quess_mode(Akinator *akinator) {
 
             node = StackPop(&akinator->dontknow_nodes);
 
+            node = node->right;
+
             continue;
         }
 
         add_character(akinator, node);
+
+        break;
     }
 
 }
@@ -317,18 +321,18 @@ static Answers ask_questions(Akinator *akinator, Tree_node *node) {
 static Tree_node* ask_question(Akinator *akinator, Tree_node *node) {
     assert(node != nullptr);
 
-    printf("Your character %s?", node->data);
+    printf("Your character %s?\n", node->data);
 
     Answers ans = get_answer();
 
     switch (ans) {
         case Yes:
 
-            return node->right;
+            return node->left;
 
         case No:
 
-            return node->left;
+            return node->right;
 
         case DontKnow:
 
@@ -402,8 +406,8 @@ static void add_character(Akinator *akinator, Tree_node *node) {
 
     get_user_input(new_character_name);
 
-    printf("Please, give the difference between %s and %s.", node->data, new_character_name);
-    printf("Unlike %s your character...\n", node->data);
+    printf("Please, give the difference between %s and %s. ", node->data, new_character_name);
+    printf("Unlike %s %s...\n", node->data, new_character_name);
 
     memory_allocate(difference);
 
@@ -419,6 +423,8 @@ static void add_character(Akinator *akinator, Tree_node *node) {
     node->is_saved        = false;
     node->left->is_saved  = false;
     node->right->is_saved = true;
+
+    printf("Thank you for help! Let's continue having fun!\n");
 }
 
 #undef memory_allocate
