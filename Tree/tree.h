@@ -2,7 +2,6 @@
 #define TREE_H
 
 #include "../Libs/logging.h"
-#include "../Libs/Stack/stack.h"
 
 
 static const char *UNSAVED_FILL__COLOR = "#BEA0A0";
@@ -42,7 +41,10 @@ enum Tree_err {
 
 
 
-#define init_tree(tree) real_tree_init(tree, __FILE__, __PRETTY_FUNCTION__, __LINE__, input);
+#define init_tree(tree) real_tree_init(tree, __FILE__, __PRETTY_FUNCTION__, __LINE__);
+
+#define dump_tree(tree, message, ...) real_dump_tree(tree, __FILE__, __PRETTY_FUNCTION__, __LINE__,\
+                                                                           message, ##__VA_ARGS__);
 
 #define Print_code(format, ...)                    \
         fprintf(code_output, format, ##__VA_ARGS__);
@@ -59,21 +61,19 @@ enum Tree_err {
 
 int real_tree_init(Tree* tree, const char *file, const char *func, int line);
 
-Tree_node init_node(Tree_node *parent, bool is_left, char* data);
-
-Tree_node init_right_node(Tree_node *parent, char *data);
-Tree_node init_left_node (Tree_node *parent, char *data);
+Tree_node* init_right_node(Tree *tree, Tree_node *parent, char *data);
+Tree_node* init_left_node (Tree *tree, Tree_node *parent, char *data);
  
 int init_head_node(Tree *tree, char *data);
 
 void free_node(Tree_node *node);
 
 
-int tree_dtor(Tree *tree);
+void tree_dtor(Tree *tree);
 
 void real_dump_tree(const Tree *tree, const char *file, const char *func, int line, 
                                                                const char *message, ...);
 
-void generate_graph_code(Tree *tree);
+void generate_graph_code(const Tree *tree);
 
 #endif

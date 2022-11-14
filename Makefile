@@ -14,10 +14,11 @@ clean:
 folders:
 	mkdir -p $(FOLDERS)
 
-$(AKINATOR): obj/akinator.o obj/tree.o obj/file_reading.o obj/logging.o obj/stack.o obj/stack_logs.o obj/stack_verification.o
-	g++ obj/akinator.o obj/tree.o obj/file_reading.o obj/logging.o obj/stack.o obj/stack_logs.o obj/stack_verification.o -o $(AKINATOR) $(CPPFLAGS)
+$(AKINATOR): obj/akinator.o obj/tree.o obj/file_reading.o obj/logging.o obj/stack.o obj/stack_logs.o obj/stack_verification.o obj/main.o
+	g++ obj/main.o obj/akinator.o obj/tree.o obj/file_reading.o obj/logging.o obj/stack.o obj/stack_logs.o obj/stack_verification.o -o $(AKINATOR) $(CPPFLAGS)
 
-
+obj/main.o: main.cpp obj/akinator.o obj/tree.o 
+	g++ -c main.cpp -o obj/main.o
 
 obj/akinator.o: akinator.cpp akinator.h Tree/tree.cpp Tree/tree.h
 	g++ -c akinator.cpp -o obj/akinator.o $(CPPFLAGS)
@@ -40,8 +41,8 @@ obj/stack_verification.o: Libs/Stack/stack_verification.cpp
 
 
 
-obj/file_reading.o: Common/file_reading.cpp Common/file_reading.hpp
-	g++ -c Common/file_reading.cpp -o obj/file_reading.o $(CPPFLAGS)
+obj/file_reading.o: Libs/file_reading.cpp Libs/file_reading.hpp
+	g++ -c Libs/file_reading.cpp -o obj/file_reading.o $(CPPFLAGS)
 
 
 

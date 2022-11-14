@@ -1,7 +1,10 @@
 #ifndef AKINATOR_H
 #define AKINATOR_H
 
-#include "Tree/tree.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "Libs/Stack/stack.h"
 
 struct Akinator {
     Tree  tree           = {};
@@ -23,6 +26,10 @@ enum Answers {
 
 const char* get_input_name(int argc, const char **argv);
 
-int init_akinator(Tree *tree, char *input_filename);
+bool init_akinator(Akinator *akinator, const char *input_filename);
+
+void run_akinator(Akinator *akinator);
+
+void akinator_dtor(Akinator *akinator);
 
 #endif

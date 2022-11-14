@@ -1,12 +1,10 @@
-#include "stack_logs.h"
-
 #include <stdio.h>
 #include <math.h>
 #include <stdarg.h>
 
-#include "stack_verification.h"
+#include "stack_logs.h"
 
-FILE *Logstream = stdout;
+#include "stack_verification.h"
 
 void RealDumpLogs(Stack *stk, FILE *logfile, const char *file, const char *func, int line, int errors) {
     if (logfile == nullptr) {
@@ -158,12 +156,4 @@ void Print(FILE *output, const char *format, ...) {
     #endif
 
     va_end(ptr);
-}
-
-FILE* GetLogStream() {
-    return Logstream;
-}
-
-void SetLogStream(FILE *stream) {
-    Logstream = stream;
 }

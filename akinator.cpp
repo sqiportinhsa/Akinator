@@ -4,10 +4,12 @@
 #include <string.h>
 
 #include "akinator.h"
+#include "Libs/file_reading.hpp"
 
 const int Max_input_len = 50;
 
 /*--------------------------- INTERNAL FUNCTIONS DECLARATION -------------------------------------*/
+
 //------------ PARSING INPUT ----------------//
 
 static bool get_tree(Akinator *akinator);
@@ -27,13 +29,23 @@ static int get_mode();
 
 static void run_quess_mode(Akinator *akinator);
 
-static Tree_node ask_questions(const Akinator *akinator, Tree_node *node);
+static Answers    ask_questions(Akinator *akinator, Tree_node *node);
 
-static Tree_node ask_question (const Akinator *akinator, Tree_node *node);
+static Tree_node* ask_question (Akinator *akinator, Tree_node *node);
 
 static Answers get_answer();
 
 static void celebrate_win(Answers ans);
+
+static void add_character(Akinator *akinator, Tree_node *node);
+
+//------------- OTHER STATICS ---------------//
+
+static bool get_data_base(Akinator *akinator, const char *input);
+
+static void get_user_input(char *input);
+
+
 
 
 /*-------------------------------- EXTERNAL FUNCTIONS --------------------------------------------*/
@@ -48,21 +60,31 @@ const char* get_input_name(int argc, const char **argv) {
     return args.input;
 }
 
-int init_akinator(Akinator *akinator, char *input_filename) {
+bool init_akinator(Akinator *akinator, const char *input_filename) {
     assert(akinator != nullptr);
 
-    init_tree(akinator->tree);
+    init_tree(&akinator->tree);
+
+    StackCtr(&akinator->dontknow_nodes, 0);
 
     if (input_filename != nullptr) {
 
-        get_data_base(akinator->data_base, input_filename);
+        if (!get_data_base(akinator, input_filename)) {
+
+            return false;
+        }
 
     } else {
 
         akinator->data_base = nullptr;
     }
 
-    get_tree(akinator);
+    if (!get_tree(akinator)) {
+
+        return false;
+    }
+
+    return true;
 }
 
 void run_akinator(Akinator *akinator) {
@@ -86,6 +108,14 @@ void run_akinator(Akinator *akinator) {
     }
 }
 
+void akinator_dtor(Akinator *akinator) {
+    tree_dtor(&akinator->tree);
+    StackDestr(&akinator->dontknow_nodes);
+    free(akinator->data_base);
+
+    akinator->data_base      = nullptr;
+}
+
 
 /*---------------------------------- PARSING INPUT FILE ------------------------------------------*/
 
@@ -94,7 +124,9 @@ static bool get_tree(Akinator *akinator) {
 
     if (akinator->data_base == nullptr) {
 
-        init_head_node(akinator->tree, "Someone");
+        init_head_node(&akinator->tree, "Someone");
+
+        akinator->tree.head->is_saved = false;
 
         return true;
     }
@@ -115,7 +147,7 @@ static bool get_tree(Akinator *akinator) {
         akinator->data_base[ip++] = '\0';
 
 #define CHECK_SYM(sym)                                          \
-        if (akinator->data_base[ip++] != sym) {                 \
+        if (akinator->data_base[*ip++] != sym) {                \
             printf("Error: incorrect input file format\n");     \
             return false;                                       \
         }
@@ -136,7 +168,9 @@ static bool get_head(Akinator *akinator, size_t *ip) {
 
     CHECK_SYM('"');
 
-    init_head_node(akinator->tree, &(akinator->data_base[ip]));
+    init_head_node(&akinator->tree, &(akinator->data_base[*ip]));
+
+    akinator->tree.head->is_saved = true;
 
     SKIP_STRING(*ip);
 
@@ -146,11 +180,11 @@ static bool get_head(Akinator *akinator, size_t *ip) {
 
     CHECK_FOR_ENDING(*ip);
 
-    if (!get_left (akinator->tree.head, ip)) {
+    if (!get_left (akinator, akinator->tree.head, ip)) {
         return false;
     }
 
-    if (!get_right(akinator->tree.head, ip)) {
+    if (!get_right(akinator, akinator->tree.head, ip)) {
         return false;
     }
 
@@ -186,10 +220,12 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
     Tree_node *node = nullptr;
 
     if (is_left) {
-        node = init_left_node (parent, &(akinator->data_base[ip]));
+        node = init_left_node (&akinator->tree, parent, &(akinator->data_base[*ip]));
     } else {
-        node = init_right_node(parent, &(akinator->data_base[ip]));
+        node = init_right_node(&akinator->tree, parent, &(akinator->data_base[*ip]));
     }
+
+    node->is_saved = true;
 
     SKIP_STRING(*ip);
 
@@ -199,11 +235,11 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
 
     CHECK_FOR_ENDING(*ip);
 
-    if (!get_left (node, ip)) {
+    if (!get_left (akinator, node, ip)) {
         return false;
     }
     
-    if (!get_right(node, ip)) {
+    if (!get_right(akinator, node, ip)) {
         return false;
     }
 
@@ -250,23 +286,23 @@ static void run_quess_mode(Akinator *akinator) {
 
         if (akinator->dontknow_nodes.size != 0) {
 
-            node = StackPop(akinator->dontknow_nodes);
+            node = StackPop(&akinator->dontknow_nodes);
 
             continue;
         }
 
-        add_character(akinator);
+        add_character(akinator, node);
     }
 
 }
 
-static Tree_node ask_questions(const Akinator *akinator, Tree_node *node) {
+static Answers ask_questions(Akinator *akinator, Tree_node *node) {
 
     assert(akinator != nullptr);
     assert(node     != nullptr);
 
-    while (node.left != nullptr && node.right != nullptr) {
-        node = ask_question(node);
+    while (node->left != nullptr && node->right != nullptr) {
+        node = ask_question(akinator, node);
 
         assert(node != nullptr);
     }
@@ -278,7 +314,7 @@ static Tree_node ask_questions(const Akinator *akinator, Tree_node *node) {
     return ans;
 }
 
-static Tree_node ask_question(const Akinator *akinator, Tree_node *node) {
+static Tree_node* ask_question(Akinator *akinator, Tree_node *node) {
     assert(node != nullptr);
 
     printf("Your character %s?", node->data);
@@ -296,7 +332,7 @@ static Tree_node ask_question(const Akinator *akinator, Tree_node *node) {
 
         case DontKnow:
 
-            StackPush(akinator->dontknow_nodes, node);
+            StackPush(&akinator->dontknow_nodes, node);
 
             return node->left;
 
@@ -337,15 +373,23 @@ static void celebrate_win(Answers ans) {
     if (ans == DontKnow) {
         printf("Don't you really know who you character is?\n" 
                "Maybe you wanna restart game with new character that you actually know?\n" 
-               "Anyway thank you for the game! Hope you liked it :3");
+               "Anyway thank you for the game! Hope you liked it :3\n");
     }
 }
+
+#define memory_allocate(ptr)                                                                  \
+        char *ptr = (char*) calloc(Max_input_len, sizeof(char));                              \
+        if (ptr == nullptr) {                                                                 \
+            printf("Sorry, I can't add your character: there is no enougth memory");          \
+            return;                                                                           \
+        }
+
 
 static void add_character(Akinator *akinator, Tree_node *node) {
     printf("I'm sorry but i don't know who was guessed. Stupid programm!\n"
            "Can you help me become better by telling who was you character? [yes/no]\n");
 
-    Answer ans = get_answer();
+    Answers ans = get_answer();
 
     if (ans != Yes) {
         printf("What a pity! Anyway thank you for the game. Let's return to mode choosing.\n");
@@ -354,34 +398,42 @@ static void add_character(Akinator *akinator, Tree_node *node) {
 
     printf("Thank you! Enter your character's name please\n");
 
-    char *new_character_name = calloc(Max_input_len, sizeof(char));
+    memory_allocate(new_character_name);
 
     get_user_input(new_character_name);
 
     printf("Please, give the difference between %s and %s.", node->data, new_character_name);
-    printf("Unlike %s your character...\n");
+    printf("Unlike %s your character...\n", node->data);
 
-    char *difference = calloc(Max_input_len, sizeof(char));
+    memory_allocate(difference);
 
     get_user_input(difference);
 
     char *old_character = node->data;
 
-    init_left_node (node, new_character_name);
-    init_right_node(node, old_character);
+    init_left_node (&akinator->tree, node, new_character_name);
+    init_right_node(&akinator->tree, node, old_character);
 
     node->data = difference;
 
     node->is_saved        = false;
     node->left->is_saved  = false;
     node->right->is_saved = true;
-
 }
+
+#undef memory_allocate
 
 
 /*-------------------------------- OTHER STATIC FUNCTIONS ----------------------------------------*/
 
-static void get_data_base(Akinator *akinator, const char *input) {
+#define memory_allocate(ptr, size, type)                                                      \
+        ptr = (type*) calloc(size, sizeof(type));                                             \
+        if (ptr == nullptr) {                                                                 \
+            printf("Error: can't run akinator - not enought memory\n");                       \
+            return false;                                                                     \
+        }
+
+static bool get_data_base(Akinator *akinator, const char *input) {
     assert(akinator != nullptr);
     assert(input    != nullptr);
 
@@ -390,7 +442,11 @@ static void get_data_base(Akinator *akinator, const char *input) {
     memory_allocate(akinator->data_base, amount_of_symbols, char);
 
     amount_of_symbols = read_file(akinator->data_base, amount_of_symbols, input);
+
+    return true;
 }
+
+#undef memory_allocate
 
 static void get_user_input(char *input) {
     assert(input != nullptr);
