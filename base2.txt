@@ -1,0 +1,7 @@
+{ "is known"
+{ "is a boy"
+{ "Yan" }
+{ "Olya" }
+ }
+{ "Someone" }
+ }

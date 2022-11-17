@@ -14,7 +14,7 @@ const int Max_input_len = 50;
 
 static bool get_tree(Akinator *akinator);
 
-static bool get_head(Akinator *akinator, size_t *ip);
+static bool get_head(Akinator *akinator);
 
 static bool get_left (Akinator *akinator, Tree_node *parent, size_t *ip);
 static bool get_right(Akinator *akinator, Tree_node *parent, size_t *ip);
@@ -25,11 +25,13 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
 
 static int get_mode();
 
+static void save_new_tree(Tree *tree);
+
 //------------- GUESS MODE ------------------//
 
 static void run_quess_mode(Akinator *akinator);
 
-static Answers    ask_questions(Akinator *akinator, Tree_node *node);
+static Answers    ask_questions(Akinator *akinator, Tree_node **node);
 
 static Tree_node* ask_question (Akinator *akinator, Tree_node *node);
 
@@ -95,6 +97,7 @@ void run_akinator(Akinator *akinator) {
 
         switch (mode) {
         case Exit:
+            save_new_tree(&akinator->tree);
             return;
 
         case Guess:
@@ -130,27 +133,29 @@ static bool get_tree(Akinator *akinator) {
 
         return true;
     }
-    
-    size_t ip = 0;
 
-    return get_head(akinator, &ip);
+    return get_head(akinator);
 }
 
 
-#define SKIP_SPACES(ip)                               \
-        for (; isspace(akinator->data_base[ip]); ++ip);
+#define SKIP_SPACES(ip)                                 \
+        for (; isspace(akinator->data_base[ip]); ++(ip));
 
-#define SKIP_STRING(ip)                                                                   \
-        for (; isalnum(akinator->data_base[ip]) || ispunct(akinator->data_base[ip]); ++ip);
+#define SKIP_STRING(ip)                                 \
+        for (; akinator->data_base[ip] != '"'; ++ip);   \
+        ++ip;
 
 #define SET_STRING_ENDING(ip)           \
-        akinator->data_base[ip++] = '\0';
+        akinator->data_base[ip - 1] = '\0';\
+        ++ip;
 
-#define CHECK_SYM(sym)                                          \
-        if (akinator->data_base[*ip++] != sym) {                \
-            printf("Error: incorrect input file format\n");     \
-            return false;                                       \
-        }
+#define CHECK_SYM(sym, ip)                                                              \
+        if (akinator->data_base[ip] != sym) {                                           \
+            printf("Error: incorrect input file format.\nExpected: <%c>, got: <%c>\n",  \
+                                                      sym, akinator->data_base[ip]);    \
+            return false;                                                               \
+        }                                                                               \
+        ++ip;
 
 #define CHECK_FOR_ENDING(ip)                    \
         if (akinator->data_base[ip] == '}') {   \
@@ -158,39 +163,40 @@ static bool get_tree(Akinator *akinator) {
         }
 
 
-static bool get_head(Akinator *akinator, size_t *ip) {
+static bool get_head(Akinator *akinator) {
     assert(akinator != nullptr);
-    assert(ip       != nullptr);
+    
+    size_t ip = 0;
 
-    CHECK_SYM('{');
+    CHECK_SYM('{', ip);
 
-    SKIP_SPACES(*ip);
+    SKIP_SPACES(ip);
 
-    CHECK_SYM('"');
+    CHECK_SYM('"', ip);
 
-    init_head_node(&akinator->tree, &(akinator->data_base[*ip]));
+    init_head_node(&akinator->tree, &(akinator->data_base[ip]));
 
     akinator->tree.head->is_saved = true;
 
-    SKIP_STRING(*ip);
+    SKIP_STRING(ip);
 
-    SET_STRING_ENDING(*ip);
+    SET_STRING_ENDING(ip);
 
-    SKIP_SPACES(*ip);
+    SKIP_SPACES(ip);
 
-    CHECK_FOR_ENDING(*ip);
+    CHECK_FOR_ENDING(ip);
 
-    if (!get_left (akinator, akinator->tree.head, ip)) {
+    if (!get_left (akinator, akinator->tree.head, &ip)) {
         return false;
     }
 
-    if (!get_right(akinator, akinator->tree.head, ip)) {
+    if (!get_right(akinator, akinator->tree.head, &ip)) {
         return false;
     }
 
-    SKIP_SPACES(*ip);
+    SKIP_SPACES(ip);
 
-    CHECK_FOR_ENDING(*ip);
+    CHECK_FOR_ENDING(ip);
 
     return false;
 }
@@ -209,13 +215,21 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
     assert(ip       != nullptr);
     assert(parent   != nullptr);
 
+    FILE *output1 = fopen("dump.txt", "w");
+
+    text_database_dump(&akinator->tree, output1);
+
+    fclose(output1);
+
     SKIP_SPACES(*ip);
 
-    CHECK_SYM('{');
+    printf("before processing node: ip = %zu <%d> <%c>\n", *ip, akinator->data_base[*ip - 1], akinator->data_base[*ip - 1]);
+
+    CHECK_SYM('{', *ip);
 
     SKIP_SPACES(*ip);
 
-    CHECK_SYM('"');
+    CHECK_SYM('"', *ip);
 
     Tree_node *node = nullptr;
 
@@ -229,7 +243,11 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
 
     SKIP_STRING(*ip);
 
+    printf("after skip string: ip=%zu <%d> <%c>\n", *ip, akinator->data_base[*ip - 1], akinator->data_base[*ip - 1]);
+
     SET_STRING_ENDING(*ip);
+
+    printf("after set ending:  ip=%zu <%d> <%c>\n", *ip, akinator->data_base[*ip - 1], akinator->data_base[*ip - 1]);
 
     SKIP_SPACES(*ip);
 
@@ -244,6 +262,12 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
     }
 
     CHECK_FOR_ENDING(*ip);
+
+    FILE *output2 = fopen("dump.txt", "w");
+
+    text_database_dump(&akinator->tree, output2);
+
+    fclose(output2);
 
     return false;
 }
@@ -265,6 +289,30 @@ static int get_mode() {
     return mode;
 }
 
+static void save_new_tree(Tree *tree) {
+    printf("Do you wanna save tree before exit? [yes/no]\n");
+
+    Answers ans = get_answer();
+
+    if (ans != Yes) {
+        return;
+    }
+
+    printf("Please, enter name of file for saving:\n");
+
+    char answer[Max_input_len] = {};
+
+    get_user_input(answer);
+
+    FILE *output = fopen(answer, "w");
+
+    if (output != nullptr) {
+        text_database_dump(tree, output);
+    }
+
+    fclose(output);
+}
+
 //-------------- GUESS MODE ---------------//
 
 static void run_quess_mode(Akinator *akinator) {
@@ -276,7 +324,7 @@ static void run_quess_mode(Akinator *akinator) {
     Answers ans = No;
 
     while (ans == No) {
-        ans = ask_questions(akinator, node);
+        ans = ask_questions(akinator, &node);
 
         if (ans != No) {
             celebrate_win(ans);
@@ -300,18 +348,19 @@ static void run_quess_mode(Akinator *akinator) {
 
 }
 
-static Answers ask_questions(Akinator *akinator, Tree_node *node) {
+static Answers ask_questions(Akinator *akinator, Tree_node **node) {
 
     assert(akinator != nullptr);
-    assert(node     != nullptr);
+    assert( node    != nullptr);
+    assert(*node    != nullptr);
 
-    while (node->left != nullptr && node->right != nullptr) {
-        node = ask_question(akinator, node);
+    while ((*node)->left != nullptr && (*node)->right != nullptr) {
+        *node = ask_question(akinator, *node);
 
-        assert(node != nullptr);
+        assert(*node != nullptr);
     }
 
-    printf("Your character is %s? [yes/no/dn] (dn = don't know)\n", node->data);
+    printf("Your character is %s? [yes/no/dn] (dn = don't know)\n", (*node)->data);
 
     Answers ans = get_answer();
 

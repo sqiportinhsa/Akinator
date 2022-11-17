@@ -15,6 +15,8 @@ static void generate_file_name(char *filename, const char *extension);
 
 static Tree_node* init_node(Tree *tree, Tree_node *parent, bool is_left, char *data);
 
+static void text_dump_node(Tree_node *node, FILE *output);
+
 
 static const int max_file_with_graphviz_code_name_len = 30;
 static const int max_generation_png_command_len = 200;
@@ -78,7 +80,10 @@ void tree_dtor(Tree *tree) {
 
     free(tree->logs);
     
-    free_node(tree->head);
+    free_node(tree->head->left);
+    free_node(tree->head->right);
+
+    free(tree->head);
 
     tree->head      = nullptr;
     tree->logs      = nullptr;
@@ -192,6 +197,28 @@ void generate_graph_code(const Tree *tree) {
     fprintf(GetLogStream(), "Picture is generated. You can find it by name %s.\n", png_file_name);
     #endif
 
+}
+
+void text_database_dump(Tree *tree, FILE *output) {
+    assert(tree   != nullptr);
+    assert(output != nullptr);
+
+    text_dump_node(tree->head, output);
+}
+
+static void text_dump_node(Tree_node *node, FILE *output) {
+    assert(node   != nullptr);
+    assert(output != nullptr);
+
+    fprintf(output, "{ \"%s\"", node->data);
+
+    if (node->left != nullptr && node->right != nullptr) {
+        fprintf(output, "\n");
+        text_dump_node(node->left,  output);
+        text_dump_node(node->right, output);
+    }
+
+    fprintf(output, " }\n");
 }
 
 static void generate_node_code(Tree_node *node, FILE *code_output) {

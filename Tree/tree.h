@@ -76,4 +76,6 @@ void real_dump_tree(const Tree *tree, const char *file, const char *func, int li
 
 void generate_graph_code(const Tree *tree);
 
+void text_database_dump(Tree *tree, FILE *output);
+
 #endif
