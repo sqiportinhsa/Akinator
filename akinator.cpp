@@ -2,12 +2,14 @@
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "akinator.h"
 #include "Libs/file_reading.hpp"
 
 const int Max_input_len    = 50;
-const int Picture_name_len = 50;
+const int Picture_name_len = 30;
+const int Message_len      = 150;
 
 /*--------------------------- INTERNAL FUNCTIONS DECLARATION -------------------------------------*/
 
@@ -31,6 +33,8 @@ static void get_user_input(char *input);
 static Answers get_answer();
 
 static Tree_node* find_node(Tree_node *node, char *data);
+
+static void print_and_read(const char *message, ...);
 
 //---------------- EXIT ---------------------//
 
@@ -283,7 +287,7 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
 /*------------------------------------ AKINATOR MODES --------------------------------------------*/
 
 static int get_mode() {
-    printf("To continue choose game mode:\n");
+    print_and_read("To continue choose game mode:\n");
     printf("\t%d - Exit the game\n", Exit);
     printf("\t%d - Answer Akinator's questions and it will guess you character\n", Guess);
     printf("\t%d - Graph dump of questions tree\n", Graph_dump);
@@ -292,6 +296,9 @@ static int get_mode() {
 
     if (scanf("%d%*c", &mode) != 1) {
         printf("You failed mode choosing. Please try again.\n");
+
+        while (getchar() != '\n');
+
         return get_mode();
     }
 
@@ -356,6 +363,23 @@ static Tree_node* find_node(Tree_node *node, char *data) {
     }
 
     return nullptr;
+}
+
+static void print_and_read(const char *message, ...) {
+    va_list ptr = {};
+    va_start(ptr, message);
+    vprintf(message, ptr);
+
+    char text[Message_len] = {};
+    char cmd [Message_len] = {};
+
+    vsprintf(text, message, ptr);
+
+    sprintf(cmd, "echo '%s' | festival --tts", text);
+
+    system(cmd);
+
+    va_end(ptr);
 }
 
 //----------------- EXIT ------------------//
