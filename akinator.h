@@ -16,6 +16,7 @@ enum Game_modes {
     Exit = 0,
     Guess,
     Graph_dump,
+    Definition,
 };
 
 enum Answers {

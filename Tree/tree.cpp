@@ -182,7 +182,6 @@ void generate_graph_picture(const Tree *tree, char *picture_name) {
     FILE *code_output = fopen(code_filename, "w");
 
     Print_code("digraph G{\n");
-    Print_code("rankdir=LR;");
     Print_code("node [shape=record,style=\"filled\"];\n");
     Print_code("splines=ortho;\n");
 
@@ -223,7 +222,7 @@ static void text_dump_node(Tree_node *node, FILE *output) {
 
 static void generate_node_code(Tree_node *node, FILE *code_output) {
     Colors node_colors = get_colors(node);
-    
+
     Print_node(node, node_colors);
     
     if (node->parent) {

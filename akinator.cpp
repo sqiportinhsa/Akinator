@@ -26,6 +26,14 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
 
 static int get_mode();
 
+static void get_user_input(char *input);
+
+static Answers get_answer();
+
+static Tree_node* find_node(Tree_node *node, char *data);
+
+//---------------- EXIT ---------------------//
+
 static void save_new_tree(Tree *tree);
 
 //------------- GUESS MODE ------------------//
@@ -36,8 +44,6 @@ static Answers    ask_questions(Akinator *akinator, Tree_node **node);
 
 static Tree_node* ask_question (Akinator *akinator, Tree_node *node);
 
-static Answers get_answer();
-
 static void celebrate_win(Answers ans);
 
 static void add_character(Akinator *akinator, Tree_node *node);
@@ -46,11 +52,15 @@ static void add_character(Akinator *akinator, Tree_node *node);
 
 static void run_graph_dump(Tree *tree);
 
+//------------ DEFINITION MODE --------------//
+
+static void run_definition_mode(Tree *tree);
+
+//------------ DIFFERENCE MODE --------------//
+
 //------------- OTHER STATICS ---------------//
 
 static bool get_data_base(Akinator *akinator, const char *input);
-
-static void get_user_input(char *input);
 
 
 
@@ -112,7 +122,11 @@ void run_akinator(Akinator *akinator) {
         case Graph_dump:
             run_graph_dump(&akinator->tree);
             break;
-            
+
+        case Definition:
+            run_definition_mode(&akinator->tree);
+            break;
+
         default:
             printf("You entered non-existing mode number. Please, try again\n");
             continue;
@@ -125,7 +139,7 @@ void akinator_dtor(Akinator *akinator) {
     StackDestr(&akinator->dontknow_nodes);
     free(akinator->data_base);
 
-    akinator->data_base      = nullptr;
+    akinator->data_base = nullptr;
 }
 
 
@@ -284,6 +298,66 @@ static int get_mode() {
     return mode;
 }
 
+//---------------- Common -----------------//
+
+static Answers get_answer() {
+    char answer[Max_input_len] = {};
+
+    get_user_input(answer);
+
+    if (strcasecmp(answer, "yes") == 0) {
+        return Yes;
+
+    } else if (strcasecmp(answer, "no") == 0) {
+        return No;
+
+    } else if (strcasecmp(answer, "dn") == 0) {
+        return DontKnow;
+
+    }
+
+    printf("Sorry, I can't understand your answer. It would be \"Don't know\"\n");
+
+    return DontKnow;
+}
+
+static void get_user_input(char *input) {
+    assert(input != nullptr);
+
+    fgets(input, Max_input_len, stdin);
+
+    *(strchr (input, '\n')) = '\0';
+}
+
+static Tree_node* find_node(Tree_node *node, char *data) {
+    assert(node != nullptr);
+    assert(data != nullptr);
+
+    if (strcasecmp(data, node->data) == 0) {
+        return node;
+    }
+
+    if (node->left == nullptr || node->right == nullptr) {
+        return nullptr;
+    }
+
+    Tree_node *ans = nullptr;
+
+    ans = find_node(node->left, data);
+
+    if (ans != nullptr) {
+        return ans;
+    }
+
+    ans = find_node(node->right, data);
+    
+    if (ans != nullptr) {
+        return ans;
+    }
+
+    return nullptr;
+}
+
 //----------------- EXIT ------------------//
 
 static void save_new_tree(Tree *tree) {
@@ -393,27 +467,6 @@ static Tree_node* ask_question(Akinator *akinator, Tree_node *node) {
     return nullptr;
 }
 
-static Answers get_answer() {
-    char answer[Max_input_len] = {};
-
-    get_user_input(answer);
-
-    if (strcasecmp(answer, "yes") == 0) {
-        return Yes;
-
-    } else if (strcasecmp(answer, "no") == 0) {
-        return No;
-
-    } else if (strcasecmp(answer, "dn") == 0) {
-        return DontKnow;
-
-    }
-
-    printf("Sorry, I can't understand your answer. It would be \"Don't know\"\n");
-
-    return DontKnow;
-}
-
 static void celebrate_win(Answers ans) {
     if (ans == Yes) {
         printf("Thank you for the game! As you can see, I'm really clever programm\n" 
@@ -496,6 +549,45 @@ static void run_graph_dump(Tree *tree) {
     printf("Picture is generated, you can get it by name %s\n", picture_name);
 }
 
+//------------- DEFINITION MODE -----------//
+
+static void run_definition_mode(Tree *tree) {
+    printf("Enter name of character that i need to define:\n");
+
+    char name[Max_input_len] = {};
+
+    get_user_input(name);
+
+    Tree_node *found = find_node(tree->head, name);
+
+    if (found == nullptr) {
+        printf("Sorry, I can't find this character.\n"
+               "You can add it using guess mode by answering guestions about it.\n");
+        return;
+    }
+
+    printf("%s ", found->data);
+
+    while(found->parent->parent != nullptr) {
+
+        if (found == found->parent->left) {
+            printf("%s, ", found->parent->data);
+        } else {
+            printf("not %s, ", found->parent->data);
+        }
+
+        found = found->parent;
+    }
+
+    if (found == found->parent->left) {
+            printf("and %s.\n", found->parent->data);
+        } else {
+            printf("and not %s.\n", found->parent->data);
+        }
+}
+
+//-------------- DIFFERENCE MODE-----------//
+
 
 /*-------------------------------- OTHER STATIC FUNCTIONS ----------------------------------------*/
 
@@ -520,11 +612,3 @@ static bool get_data_base(Akinator *akinator, const char *input) {
 }
 
 #undef memory_allocate
-
-static void get_user_input(char *input) {
-    assert(input != nullptr);
-
-    fgets(input, Max_input_len, stdin);
-
-    *(strchr (input, '\n')) = '\0';
-}
