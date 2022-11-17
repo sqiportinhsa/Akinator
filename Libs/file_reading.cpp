@@ -137,3 +137,43 @@ size_t skip_spaces_and_void_lines(char *pointer) {
 
     return i;
 }
+
+void debug_text_dump(char *text, size_t ip) {
+    assert(text != nullptr);
+
+    size_t range = 10;
+
+    size_t left_border = 0;
+
+    if (ip > range) {
+        left_border = ip - range;
+    }
+
+    for (size_t i = left_border; i < ip + range; ++i) {
+        printf("%4zu ", i);
+    }
+
+    printf("\n");
+
+    for (size_t i = left_border; i < ip + range; ++i) {
+        if (text[i] == '\n') {
+            printf("\'\\n\' ");
+            continue;
+        }
+
+        if (text[i] == '\0') {
+            printf("\'\\0\' ");
+            continue;
+        }
+
+        printf("%4c ", text[i]);
+    }
+
+    printf("\n");
+
+    for (size_t i = left_border; i < ip; ++i) {
+        printf("~~~~~");
+    }
+
+    printf("~~~^ ip = %zu\n", ip);
+}

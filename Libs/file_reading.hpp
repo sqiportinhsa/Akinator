@@ -26,4 +26,6 @@ size_t skip_to_newline(char *pointer);
 
 size_t skip_spaces_and_void_lines(char *pointer);
 
+void debug_text_dump(char *text, size_t ip);
+
 #endif

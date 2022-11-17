@@ -223,7 +223,8 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
 
     SKIP_SPACES(*ip);
 
-    printf("before processing node: ip = %zu <%d> <%c>\n", *ip, akinator->data_base[*ip - 1], akinator->data_base[*ip - 1]);
+    printf("before processing node:\n");
+    debug_text_dump(akinator->data_base, *ip);
 
     CHECK_SYM('{', *ip);
 
