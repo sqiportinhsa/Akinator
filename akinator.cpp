@@ -159,6 +159,7 @@ static bool get_tree(Akinator *akinator) {
 
 #define CHECK_FOR_ENDING(ip)                    \
         if (akinator->data_base[ip] == '}') {   \
+            (ip)++;                             \
             return true;                        \
         }
 
@@ -262,6 +263,7 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
         return false;
     }
 
+    SKIP_SPACES(*ip);
     CHECK_FOR_ENDING(*ip);
 
     FILE *output2 = fopen("dump.txt", "w");
