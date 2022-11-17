@@ -216,16 +216,7 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
     assert(ip       != nullptr);
     assert(parent   != nullptr);
 
-    FILE *output1 = fopen("dump.txt", "w");
-
-    text_database_dump(&akinator->tree, output1);
-
-    fclose(output1);
-
     SKIP_SPACES(*ip);
-
-    printf("before processing node:\n");
-    debug_text_dump(akinator->data_base, *ip);
 
     CHECK_SYM('{', *ip);
 
@@ -245,11 +236,7 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
 
     SKIP_STRING(*ip);
 
-    printf("after skip string: ip=%zu <%d> <%c>\n", *ip, akinator->data_base[*ip - 1], akinator->data_base[*ip - 1]);
-
     SET_STRING_ENDING(*ip);
-
-    printf("after set ending:  ip=%zu <%d> <%c>\n", *ip, akinator->data_base[*ip - 1], akinator->data_base[*ip - 1]);
 
     SKIP_SPACES(*ip);
 
@@ -264,13 +251,8 @@ static bool get_node(Akinator *akinator, Tree_node *parent, size_t *ip, bool is_
     }
 
     SKIP_SPACES(*ip);
+
     CHECK_FOR_ENDING(*ip);
-
-    FILE *output2 = fopen("dump.txt", "w");
-
-    text_database_dump(&akinator->tree, output2);
-
-    fclose(output2);
 
     return false;
 }
@@ -373,7 +355,7 @@ static Answers ask_questions(Akinator *akinator, Tree_node **node) {
 static Tree_node* ask_question(Akinator *akinator, Tree_node *node) {
     assert(node != nullptr);
 
-    printf("Your character %s?\n", node->data);
+    printf("Your character %s? [yes/no/dn] (dn = don't know)\n", node->data);
 
     Answers ans = get_answer();
 
