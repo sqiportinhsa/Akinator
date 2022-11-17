@@ -111,7 +111,8 @@ void run_akinator(Akinator *akinator) {
 
         case Graph_dump:
             run_graph_dump(&akinator->tree);
-
+            break;
+            
         default:
             printf("You entered non-existing mode number. Please, try again\n");
             continue;
@@ -469,7 +470,16 @@ static void add_character(Akinator *akinator, Tree_node *node) {
     node->left->is_saved  = false;
     node->right->is_saved = true;
 
-    printf("Thank you for help! Let's continue having fun!\n");
+    printf("Thank you for help! Do you want to see new questions tree? [yes/no]\n");
+
+    ans = get_answer();
+
+    if (ans != Yes) {
+        printf("Okay, let's return to mode choosing and have more fun!\n");
+        return;
+    }
+
+    run_graph_dump(&akinator->tree);
 }
 
 #undef memory_allocate
@@ -483,7 +493,7 @@ static void run_graph_dump(Tree *tree) {
 
     generate_graph_picture(tree, picture_name);
 
-    printf("Picture is generated, you can get it by name %s", picture_name);
+    printf("Picture is generated, you can get it by name %s\n", picture_name);
 }
 
 
