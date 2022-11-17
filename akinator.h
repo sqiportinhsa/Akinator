@@ -15,6 +15,7 @@ struct Akinator {
 enum Game_modes {
     Exit = 0,
     Guess,
+    Graph_dump,
 };
 
 enum Answers {

@@ -6,7 +6,8 @@
 #include "akinator.h"
 #include "Libs/file_reading.hpp"
 
-const int Max_input_len = 50;
+const int Max_input_len    = 50;
+const int Picture_name_len = 50;
 
 /*--------------------------- INTERNAL FUNCTIONS DECLARATION -------------------------------------*/
 
@@ -40,6 +41,10 @@ static Answers get_answer();
 static void celebrate_win(Answers ans);
 
 static void add_character(Akinator *akinator, Tree_node *node);
+
+//------------- GRAPHIC DUMP ----------------//
+
+static void run_graph_dump(Tree *tree);
 
 //------------- OTHER STATICS ---------------//
 
@@ -103,6 +108,9 @@ void run_akinator(Akinator *akinator) {
         case Guess:
             run_quess_mode(akinator);
             break;
+
+        case Graph_dump:
+            run_graph_dump(&akinator->tree);
 
         default:
             printf("You entered non-existing mode number. Please, try again\n");
@@ -263,6 +271,7 @@ static int get_mode() {
     printf("To continue choose game mode:\n");
     printf("\t%d - Exit the game\n", Exit);
     printf("\t%d - Answer Akinator's questions and it will guess you character\n", Guess);
+    printf("\t%d - Graph dump of questions tree\n", Graph_dump);
 
     int mode = 0;
 
@@ -273,6 +282,8 @@ static int get_mode() {
 
     return mode;
 }
+
+//----------------- EXIT ------------------//
 
 static void save_new_tree(Tree *tree) {
     printf("Do you wanna save tree before exit? [yes/no]\n");
@@ -404,8 +415,8 @@ static Answers get_answer() {
 
 static void celebrate_win(Answers ans) {
     if (ans == Yes) {
-        printf("Thank you for the game! As you can see, I'm really clever programm " 
-               "(but not as clever as my creator).\n Can you give her a good mark please?^^\n");
+        printf("Thank you for the game! As you can see, I'm really clever programm\n" 
+               "(But not as clever as my creator). Can you give her a good mark please?^^\n");
     }
 
     if (ans == DontKnow) {
@@ -462,6 +473,18 @@ static void add_character(Akinator *akinator, Tree_node *node) {
 }
 
 #undef memory_allocate
+
+//--------------- GRAPHIC DUMP ------------//
+
+static void run_graph_dump(Tree *tree) {
+    char picture_name[Picture_name_len] = {};
+
+    generate_file_name(picture_name, "png");
+
+    generate_graph_picture(tree, picture_name);
+
+    printf("Picture is generated, you can get it by name %s", picture_name);
+}
 
 
 /*-------------------------------- OTHER STATIC FUNCTIONS ----------------------------------------*/

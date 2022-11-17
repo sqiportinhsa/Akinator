@@ -11,8 +11,6 @@ static void generate_node_code(Tree_node *node, FILE *code_output);
 
 static Colors get_colors(Tree_node *node);
 
-static void generate_file_name(char *filename, const char *extension);
-
 static Tree_node* init_node(Tree *tree, Tree_node *parent, bool is_left, char *data);
 
 static void text_dump_node(Tree_node *node, FILE *output);
@@ -154,7 +152,18 @@ void real_dump_tree(const Tree *tree, const char *file, const char *func, int li
         fprintf(output, "\tCan't print data: tree root does not exist\n");
     } else {
         fprintf(output, "\tTree data visualisation:\n");
-        generate_graph_code(tree);
+
+        char png_file_name[max_png_file_name_len] = {};
+
+        generate_file_name(png_file_name, "png");
+
+        generate_graph_picture(tree, png_file_name);
+
+        #ifdef LOGS_TO_HTML
+        fprintf(GetLogStream(), "\n<img src=\"%s\">\n", png_file_name);
+        #else
+        fprintf(GetLogStream(), "Picture is generated. You can find it by name %s.\n", png_file_name);
+        #endif
     }
 
     fprintf(output, "\n");
@@ -163,11 +172,17 @@ void real_dump_tree(const Tree *tree, const char *file, const char *func, int li
 
 }
 
-void generate_graph_code(const Tree *tree) {
+void generate_graph_picture(const Tree *tree, char *picture_name) {
+    assert(tree         != nullptr);
+    assert(picture_name != nullptr);
+
     char code_filename[max_file_with_graphviz_code_name_len] = {};
     generate_file_name(code_filename, "dot");
 
     FILE *code_output = fopen(code_filename, "w");
+
+    printf("%s\n", code_filename);
+    assert (code_output);
 
     Print_code("digraph G{\n");
     Print_code("rankdir=LR;");
@@ -182,21 +197,9 @@ void generate_graph_code(const Tree *tree) {
 
     char command[max_generation_png_command_len] = {};
 
-    char png_file_name[max_png_file_name_len] = {};
-
-    generate_file_name(png_file_name, "png");
-
-    sprintf(command, " c:\\GitHub\\Akinator\\Libs\\Graphviz\\bin\\dot.exe %s -o %s -T png", 
-                                                             code_filename, png_file_name);
+    sprintf(command, "dot %s -o %s -T png", code_filename, picture_name);
 
     system(command);
-
-    #ifdef LOGS_TO_HTML
-    fprintf(GetLogStream(), "\n<img src=\"%s\">\n", png_file_name);
-    #else
-    fprintf(GetLogStream(), "Picture is generated. You can find it by name %s.\n", png_file_name);
-    #endif
-
 }
 
 void text_database_dump(Tree *tree, FILE *output) {
@@ -224,6 +227,7 @@ static void text_dump_node(Tree_node *node, FILE *output) {
 static void generate_node_code(Tree_node *node, FILE *code_output) {
     Colors node_colors = get_colors(node);
 
+    printf ("%s %s\n", node_colors.fill, node_colors.frame);
     Print_node(node, node_colors);
     
     if (node->parent) {
@@ -253,7 +257,7 @@ static Colors get_colors(Tree_node *node) {
     return colors;
 }
 
-static void generate_file_name(char *filename, const char *extension)  {
+void generate_file_name(char *filename, const char *extension)  {
     static int file_with_graphviz_code_counter = 0;
     sprintf(filename, "Graphs/graph_%d.%s", file_with_graphviz_code_counter, extension);
     ++file_with_graphviz_code_counter;

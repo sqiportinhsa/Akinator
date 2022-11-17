@@ -51,12 +51,11 @@ enum Tree_err {
 
 
 #define Print_node(node, node_colors)                                                      \
-        Print_code("node%p [label=\"node %zu|{%s}\",fillcolor=\"%s\",color=\"%s\"];\n",    \
+        Print_code("node%p [label=\"{%s}\",fillcolor=\"%s\",color=\"%s\"];\n",             \
                                      node, node->data, node_colors.fill, node_colors.frame);
 
 #define Print_arrow(node, node_colors)                                                       \
-        Print_code("node%p->node%p [color=\"%s\",constraint=false];\n", node, node->parent,  \
-                                                                        node_colors.arrow);
+        Print_code("node%p->node%p [color=\"%s\"];\n", node->parent, node, node_colors.arrow);
 
 
 int real_tree_init(Tree* tree, const char *file, const char *func, int line);
@@ -74,8 +73,10 @@ void tree_dtor(Tree *tree);
 void real_dump_tree(const Tree *tree, const char *file, const char *func, int line, 
                                                                const char *message, ...);
 
-void generate_graph_code(const Tree *tree);
+void generate_graph_picture(const Tree *tree, char *picture_name);
 
 void text_database_dump(Tree *tree, FILE *output);
+
+void generate_file_name(char *filename, const char *extension);
 
 #endif
