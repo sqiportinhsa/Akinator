@@ -627,6 +627,13 @@ static void run_graph_dump(Tree *tree) {
 
 //------------- DEFINITION MODE -----------//
 
+#define Print_property(comma)                              \
+        if (found == found->parent->left) {                \
+            printf("%s" comma, found->parent->data);       \
+        } else {                                           \
+            printf("not %s" comma, found->parent->data);   \
+        }
+
 static void run_definition_mode(Tree *tree) {
     printf("Enter name of character that i need to define:\n");
 
@@ -646,21 +653,15 @@ static void run_definition_mode(Tree *tree) {
 
     while (found->parent->parent != nullptr) {
 
-        if (found == found->parent->left) {
-            printf("%s, ", found->parent->data);
-        } else {
-            printf("not %s, ", found->parent->data);
-        }
+        Print_property(", ");
 
         found = found->parent;
     }
 
-    if (found == found->parent->left) {
-        printf("%s.\n", found->parent->data);
-    } else {
-        printf("not %s.\n", found->parent->data);
-    }
+    Print_property(".\n");
 }
+
+#undef Print_property
 
 //------------- DIFFERENCE MODE -----------//
 
@@ -738,6 +739,13 @@ static void get_path(Tree_node *node, Stack *stk) {
     }
 }
 
+#define Print_property()                                         \
+        if (node1->parent->left == node1) {                      \
+            printf("%s.",     node1->parent->parent->data);      \
+        } else {                                                 \
+            printf("not %s.", node1->parent->parent->data);      \
+        }
+
 static bool print_commons(const char *name1, const char *name2, Stack *stk1, Stack *stk2) {
 
     assert(name1 != nullptr);
@@ -769,11 +777,7 @@ static bool print_commons(const char *name1, const char *name2, Stack *stk1, Sta
     node2 = StackPop(stk2);
 
     if (node1 != node2) {
-        if (node1->parent->left == node1) {
-            printf("%s.",     node1->parent->parent->data);
-        } else {
-            printf("not %s.", node1->parent->parent->data);
-        }
+        Print_property();
 
         StackPush(stk1, node1);
         StackPush(stk2, node2);
@@ -787,17 +791,24 @@ static bool print_commons(const char *name1, const char *name2, Stack *stk1, Sta
         }
     }
 
-    if (node1->parent->left == node1) {
-        printf("%s.",     node1->parent->parent->data);
-    } else {
-        printf("not %s.\n", node1->parent->parent->data);
-    }
+    Print_property();
+
+    printf("\n");
 
     StackPush(stk1, node1);
     StackPush(stk2, node2);
 
     return true;
 }
+
+#undef Print_property
+
+#define Print_property(node_comp, node_pr, comma)                   \
+        if (node_comp->parent->left == node_comp) {                 \
+            printf("%s" comma,     node_pr->parent->data);          \
+        } else {                                                    \
+            printf("not %s" comma, node_pr->parent->data);          \
+        }
 
 static bool print_common_prop(Stack *stk1, Stack *stk2, Tree_node **node1, Tree_node **node2) {
 
@@ -807,26 +818,20 @@ static bool print_common_prop(Stack *stk1, Stack *stk2, Tree_node **node1, Tree_
     assert(*node2 != nullptr);
     
     if (stk1->size == 0 || stk2->size == 0) {
-        if ((*node1)->parent->left == *node1) {
-            printf("%s.",     (*node1)->parent->parent->data);
-        } else {
-            printf("not %s.", (*node1)->parent->parent->data);
-        }
+        Print_property((*node1), ((*node1)->parent), ".");
 
         return false;
     }
 
-    if ((*node1)->parent->parent->left == (*node1)->parent) {
-        printf("%s, ",     (*node1)->parent->parent->data);
-    } else {
-        printf("not %s, ", (*node1)->parent->parent->data);
-    }
+    Print_property((*node1)->parent, (*node1)->parent, ", ");
 
     *node1 = StackPop(stk1);
     *node2 = StackPop(stk2);
 
     return true;
 }
+
+#undef Print_property
 
 static void print_difference(const char *name1, const char *name2, Stack *stk1, Stack *stk2) {
     assert(name1 != nullptr);
@@ -851,6 +856,13 @@ static void print_difference(const char *name1, const char *name2, Stack *stk1, 
 
 }
 
+#define Print_property(comma)                            \
+        if (node->parent->left == node) {                \
+            printf(comma "%s",     node->parent->data);  \
+        } else {                                         \
+            printf(comma "not %s", node->parent->data);  \
+        }
+
 static void print_properties(Stack *stk, const char *name) {
     assert(stk  != nullptr);
     assert(name != nullptr);
@@ -859,24 +871,18 @@ static void print_properties(Stack *stk, const char *name) {
 
     Tree_node *node = StackPop(stk);
 
-    if (node->parent->left == node) {
-        printf("%s",     node->parent->data);
-    } else {
-        printf("not %s", node->parent->data);
-    }
+    Print_property("");
 
     while (stk->size > 0) {
         node = StackPop(stk);
 
-        if (node->parent->left == node) {
-            printf(", %s",     node->parent->data);
-        } else {
-            printf(", not %s", node->parent->data);
-        }
+        Print_property(", ");
     }
 
     printf(".\n");
 }
+
+#undef Print_property
 
 /*-------------------------------- OTHER STATIC FUNCTIONS ----------------------------------------*/
 
