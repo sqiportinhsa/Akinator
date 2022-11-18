@@ -617,6 +617,12 @@ static void run_graph_dump(Tree *tree) {
     generate_graph_picture(tree, picture_name);
 
     printf("Picture is generated, you can get it by name %s\n", picture_name);
+
+    char command[Message_len] = {};
+
+    sprintf(command, "xdg-open %s", picture_name);
+
+    system(command);
 }
 
 //------------- DEFINITION MODE -----------//
