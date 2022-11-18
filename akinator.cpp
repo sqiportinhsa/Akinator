@@ -685,8 +685,6 @@ static void run_diff_mode(Tree *tree) {
         return;
     }
 
-    FILE *logs = CreateLogFile("stklogs.txt");
-
     Stack stk1 = {};
     Stack stk2 = {};
 
@@ -696,22 +694,14 @@ static void run_diff_mode(Tree *tree) {
     get_path(node1, &stk1);
     get_path(node2, &stk2);
 
-    DumpLogs(&stk1, logs);
-    DumpLogs(&stk2, logs);
-
     if (!print_commons(name1, name2, &stk1, &stk2)) {
         return;
     }
-
-    DumpLogs(&stk1, logs);
-    DumpLogs(&stk2, logs);
 
     print_difference(name1, name2, &stk1, &stk2);
 
     StackDestr(&stk1);
     StackDestr(&stk2);
-
-    fclose(logs);
 }
 
 static bool charact_corr_checkup(const char *name, const Tree_node *node) {
@@ -851,9 +841,13 @@ static void print_properties(Stack *stk, const char *name) {
     }
 
     while (stk->size > 0) {
-        printf(", %s", node->data);
-
         node = StackPop(stk);
+
+        if (node->parent->left == node) {
+            printf(", %s",     node->parent->data);
+        } else {
+            printf(", not %s", node->parent->data);
+        }
     }
 
     printf(".\n");
