@@ -70,9 +70,11 @@ static bool print_commons    (const char *name1, const char *name2, Stack *stk1,
 
 static void print_difference (const char *name1, const char *name2, Stack *stk1, Stack *stk2);
 
-static bool print_common_prop (Stack *stk1, Stack *stk2, Tree_node *node1, Tree_node *node2);
+static bool print_common_prop (Stack *stk1, Stack *stk2, Tree_node **node1, Tree_node **node2);
 
 static void print_properties  (Stack *stk, const char *name);
+
+static bool charact_corr_checkup(const char *name, const Tree_node *node);
 
 //------------- OTHER STATICS ---------------//
 
@@ -674,15 +676,7 @@ static void run_diff_mode(Tree *tree) {
     Tree_node *node1 = find_node(tree->head, name1);
     Tree_node *node2 = find_node(tree->head, name2);
 
-    if (node1 == nullptr) {
-        printf("Sorry, I don't know character %s. :(\n"
-               "You can add it by answering questions about it in guess mode.\n", name1);
-        return;
-    }
-
-    if (node2 == nullptr) {
-        printf("Sorry, I don't know character %s. :(\n"
-               "You can add it by answering questions about it in guess mode.\n", name2);
+    if (!charact_corr_checkup(name1, node1) || !charact_corr_checkup(name2, node2)) {
         return;
     }
 
@@ -720,6 +714,21 @@ static void run_diff_mode(Tree *tree) {
     fclose(logs);
 }
 
+static bool charact_corr_checkup(const char *name, const Tree_node *node) {
+    if (node == nullptr) {
+        printf("Sorry, I don't know character %s. :(\n"
+               "You can add it by answering questions about it in guess mode.\n", name);
+        return false;
+    }
+
+    if (node->left != nullptr) {
+        printf("Entered name %s is not a characters, but a property of character.\n", name);
+        return false;
+    }
+
+    return true;
+}
+
 static void get_path(Tree_node *node, Stack *stk) {
 
     assert(node != nullptr);
@@ -740,18 +749,14 @@ static bool print_commons(const char *name1, const char *name2, Stack *stk1, Sta
     assert(stk1  != nullptr);
     assert(stk2  != nullptr);
 
-    if (stk1->size == 0 || stk2->size == 0) {
-        printf("Sorry, but at least one of your characters is not a character, but it's property\n");
-
-        return false;
-    }
+    assert(stk1->size > 1 && stk2->size > 1);
 
     Tree_node *node1 = StackPop(stk1);
     Tree_node *node2 = StackPop(stk2);
 
     if (node1 != node2) {
 
-        printf("Characters %s and %s have nothing in common.", name1, name2);
+        printf("Characters %s and %s have nothing in common.\n", name1, name2);
 
         StackPush(stk1, node1);
         StackPush(stk2, node2);
@@ -759,20 +764,10 @@ static bool print_commons(const char *name1, const char *name2, Stack *stk1, Sta
         return true;
     }
 
-    node1 = StackPop(stk1);
-    node2 = StackPop(stk2);
-
     printf("%s like %s ", name1, name2);
 
-    return print_common_prop(stk1, stk2, node1, node2);
-}
-
-static bool print_common_prop(Stack *stk1, Stack *stk2, Tree_node *node1, Tree_node *node2) {
-
-    assert(stk1  != nullptr);
-    assert(stk2  != nullptr);
-    assert(node1 != nullptr);
-    assert(node2 != nullptr);
+    node1 = StackPop(stk1);
+    node2 = StackPop(stk2);
 
     if (node1 != node2) {
         printf("%s.", node1->parent->parent->data);
@@ -783,21 +778,13 @@ static bool print_common_prop(Stack *stk1, Stack *stk2, Tree_node *node1, Tree_n
         return true;
     }
 
-    while (node1 == node2) {
-
-        if (stk1->size == 0 || stk2->size == 0) {
-            printf("%s. ", node1->parent->parent->data);
-
-            return false;
+    while (node1 == node2) { 
+        if (!print_common_prop(stk1, stk2, &node1, &node2)) {
+            break;
         }
-
-        printf("%s, ", node1->parent->parent->data);
-
-        node1 = StackPop(stk1);
-        node2 = StackPop(stk2);
     }
 
-    printf("%s.", node1->parent->data);
+    printf("%s.\n", node1->parent->parent->data);
 
     StackPush(stk1, node1);
     StackPush(stk2, node2);
@@ -805,11 +792,32 @@ static bool print_common_prop(Stack *stk1, Stack *stk2, Tree_node *node1, Tree_n
     return true;
 }
 
+static bool print_common_prop(Stack *stk1, Stack *stk2, Tree_node **node1, Tree_node **node2) {
+
+    assert(stk1   != nullptr);
+    assert(stk2   != nullptr);
+    assert(*node1 != nullptr);
+    assert(*node2 != nullptr);
+    
+    if (stk1->size == 0 || stk2->size == 0) {
+        printf("%s. ", (*node1)->parent->parent->data);
+
+        return false;
+    }
+
+    printf("%s, ", (*node1)->parent->parent->data);
+
+    *node1 = StackPop(stk1);
+    *node2 = StackPop(stk2);
+
+    return true;
+}
+
 static void print_difference(const char *name1, const char *name2, Stack *stk1, Stack *stk2) {
     assert(name1 != nullptr);
     assert(name2 != nullptr);
-    assert(stk1 != nullptr);
-    assert(stk2 != nullptr);
+    assert(stk1  != nullptr);
+    assert(stk2  != nullptr);
 
     assert(stk1->size != 0);
     assert(stk2->size != 0);
@@ -821,7 +829,7 @@ static void print_difference(const char *name1, const char *name2, Stack *stk1, 
     }
 
     if (stk2->size > 0) {
-        printf("In the same time %s ", name2);
+        printf("At the same time %s ", name2);
 
         print_properties(stk2, name2);
     }
@@ -848,7 +856,7 @@ static void print_properties(Stack *stk, const char *name) {
         printf(", %s", node->data);
     }
 
-    printf(".\n", node->data);
+    printf(".\n");
 }
 
 /*-------------------------------- OTHER STATIC FUNCTIONS ----------------------------------------*/
