@@ -22,7 +22,5 @@
 
 void RealDumpLogs(Stack *stk, FILE *logfile, const char *file, const char *func, int line, int errors);
 void Print(FILE *logs, const char *format, ...);
-void  SetLogStream(FILE *stream);
-FILE* GetLogStream();
 
 #endif

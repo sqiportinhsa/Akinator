@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "Libs/Stack/stack.h"
+#include "Libs/Stack/stack_logs.h"
 
 struct Akinator {
     Tree  tree           = {};

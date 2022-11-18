@@ -72,7 +72,7 @@ static void print_difference (const char *name1, const char *name2, Stack *stk1,
 
 static bool print_common_prop (Stack *stk1, Stack *stk2, Tree_node *node1, Tree_node *node2);
 
-static void print_properties  (Stack *stk, const char *name, const Tree_node *node);
+static void print_properties  (Stack *stk, const char *name);
 
 //------------- OTHER STATICS ---------------//
 
@@ -587,9 +587,9 @@ static void add_character(Akinator *akinator, Tree_node *node) {
 
     node->data = difference;
 
-    node->is_saved        = false;
+    node->right->is_saved = node->is_saved;
     node->left->is_saved  = false;
-    node->right->is_saved = true;
+    node->is_saved        = false;
 
     printf("Thank you for help! Do you want to see new questions tree? [yes/no]\n");
 
@@ -668,7 +668,7 @@ static void run_diff_mode(Tree *tree) {
     get_user_input(name1);
 
     printf("Enter second character:...\n");
-    
+
     get_user_input(name2);
 
     Tree_node *node1 = find_node(tree->head, name1);
@@ -691,6 +691,8 @@ static void run_diff_mode(Tree *tree) {
         return;
     }
 
+    FILE *logs = CreateLogFile("stklogs.txt");
+
     Stack stk1 = {};
     Stack stk2 = {};
 
@@ -700,11 +702,22 @@ static void run_diff_mode(Tree *tree) {
     get_path(node1, &stk1);
     get_path(node2, &stk2);
 
+    DumpLogs(&stk1, logs);
+    DumpLogs(&stk2, logs);
+
     if (!print_commons(name1, name2, &stk1, &stk2)) {
         return;
     }
 
+    DumpLogs(&stk1, logs);
+    DumpLogs(&stk2, logs);
+
     print_difference(name1, name2, &stk1, &stk2);
+
+    StackDestr(&stk1);
+    StackDestr(&stk2);
+
+    fclose(logs);
 }
 
 static void get_path(Tree_node *node, Stack *stk) {
@@ -761,6 +774,15 @@ static bool print_common_prop(Stack *stk1, Stack *stk2, Tree_node *node1, Tree_n
     assert(node1 != nullptr);
     assert(node2 != nullptr);
 
+    if (node1 != node2) {
+        printf("%s.", node1->parent->parent->data);
+
+        StackPush(stk1, node1);
+        StackPush(stk2, node2);
+
+        return true;
+    }
+
     while (node1 == node2) {
 
         if (stk1->size == 0 || stk2->size == 0) {
@@ -792,34 +814,41 @@ static void print_difference(const char *name1, const char *name2, Stack *stk1, 
     assert(stk1->size != 0);
     assert(stk2->size != 0);
 
-    Tree_node *node1 = StackPop(stk1);
-    Tree_node *node2 = StackPop(stk2);
+    if (stk1->size > 0) {
+        printf("Unlike %s, %s ", name2, name1);
 
-    if (node1 == node2) {
-        printf("There is no differences: characters are the same.\n");
-        return;
+        print_properties(stk1, name1);
     }
 
-    printf("Unlike %s, %s ", name2, name1);
+    if (stk2->size > 0) {
+        printf("In the same time %s ", name2);
 
-    print_properties(stk1, name1, node1);
+        print_properties(stk2, name2);
+    }
 
-    printf("In the same time %s ", name2);
-
-    print_properties(stk2, name2, node2);
 }
 
-static void print_properties(Stack *stk, const char *name, const Tree_node *node) {
+static void print_properties(Stack *stk, const char *name) {
     assert(stk  != nullptr);
     assert(name != nullptr);
 
-    while (stk->size != 0) {
-        printf("%s, ", node->data);
+    assert(stk->size > 0);
 
-        node = StackPop(stk);
+    Tree_node *node = StackPop(stk);
+
+    if (node->parent->left == node) {
+        printf("%s",     node->parent->data);
+    } else {
+        printf("not %s", node->parent->data);
     }
 
-    printf("%s.\n", node->data);
+    while (stk->size > 1) {
+        node = StackPop(stk);
+
+        printf(", %s", node->data);
+    }
+
+    printf(".\n", node->data);
 }
 
 /*-------------------------------- OTHER STATIC FUNCTIONS ----------------------------------------*/
