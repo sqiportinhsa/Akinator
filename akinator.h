@@ -17,6 +17,7 @@ enum Game_modes {
     Guess,
     Graph_dump,
     Definition,
+    Difference,
 };
 
 enum Answers {
