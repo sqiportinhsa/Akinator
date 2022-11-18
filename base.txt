@@ -1,0 +1,22 @@
+{ "is known"
+{ "is a boy"
+{ "works in MIPT"
+{ "is matan lector"
+{ "Redkozubov V. V." }
+{ "Ded" }
+ }
+{ "has dark hair"
+{ "Vova" }
+{ "Yan" }
+ }
+ }
+{ "is a cat"
+{ "Poltorashka" }
+{ "Olya" }
+ }
+ }
+{ "is not a someone"
+{ "Something" }
+{ "Someone" }
+ }
+ }

@@ -769,7 +769,11 @@ static bool print_commons(const char *name1, const char *name2, Stack *stk1, Sta
     node2 = StackPop(stk2);
 
     if (node1 != node2) {
-        printf("%s.", node1->parent->parent->data);
+        if (node1->parent->left == node1) {
+            printf("%s.",     node1->parent->parent->data);
+        } else {
+            printf("not %s.", node1->parent->parent->data);
+        }
 
         StackPush(stk1, node1);
         StackPush(stk2, node2);
@@ -783,7 +787,11 @@ static bool print_commons(const char *name1, const char *name2, Stack *stk1, Sta
         }
     }
 
-    printf("%s.\n", node1->parent->parent->data);
+    if (node1->parent->left == node1) {
+        printf("%s.",     node1->parent->parent->data);
+    } else {
+        printf("not %s.\n", node1->parent->parent->data);
+    }
 
     StackPush(stk1, node1);
     StackPush(stk2, node2);
@@ -799,12 +807,20 @@ static bool print_common_prop(Stack *stk1, Stack *stk2, Tree_node **node1, Tree_
     assert(*node2 != nullptr);
     
     if (stk1->size == 0 || stk2->size == 0) {
-        printf("%s. ", (*node1)->parent->parent->data);
+        if ((*node1)->parent->left == *node1) {
+            printf("%s.",     (*node1)->parent->parent->data);
+        } else {
+            printf("not %s.", (*node1)->parent->parent->data);
+        }
 
         return false;
     }
 
-    printf("%s, ", (*node1)->parent->parent->data);
+    if ((*node1)->parent->parent->left == (*node1)->parent) {
+        printf("%s, ",     (*node1)->parent->parent->data);
+    } else {
+        printf("not %s, ", (*node1)->parent->parent->data);
+    }
 
     *node1 = StackPop(stk1);
     *node2 = StackPop(stk2);
