@@ -850,10 +850,10 @@ static void print_properties(Stack *stk, const char *name) {
         printf("not %s", node->parent->data);
     }
 
-    while (stk->size > 1) {
-        node = StackPop(stk);
-
+    while (stk->size > 0) {
         printf(", %s", node->data);
+
+        node = StackPop(stk);
     }
 
     printf(".\n");
