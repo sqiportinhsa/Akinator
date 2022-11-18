@@ -739,7 +739,10 @@ static bool print_commons(const char *name1, const char *name2, Stack *stk1, Sta
     assert(stk1  != nullptr);
     assert(stk2  != nullptr);
 
-    assert(stk1->size > 1 && stk2->size > 1);
+    if (stk1->size < 1 && stk2->size < 1) {
+        printf("Characters %s and %s have nothing in common.\n", name1, name2);
+        return true;
+    }
 
     Tree_node *node1 = StackPop(stk1);
     Tree_node *node2 = StackPop(stk2);
