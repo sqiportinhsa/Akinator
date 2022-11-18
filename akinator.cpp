@@ -627,11 +627,11 @@ static void run_graph_dump(Tree *tree) {
 
 //------------- DEFINITION MODE -----------//
 
-#define Print_property(comma)                              \
-        if (found == found->parent->left) {                \
-            printf("%s" comma, found->parent->data);       \
-        } else {                                           \
-            printf("not %s" comma, found->parent->data);   \
+#define Print_property(comma)                                      \
+        if (found == found->parent->left) {                        \
+            print_and_read("%s" comma, found->parent->data);       \
+        } else {                                                   \
+            print_and_read("not %s" comma, found->parent->data);   \
         }
 
 static void run_definition_mode(Tree *tree) {
@@ -649,7 +649,7 @@ static void run_definition_mode(Tree *tree) {
         return;
     }
 
-    printf("%s ", found->data);
+    print_and_read("%s ", found->data);
 
     while (found->parent->parent != nullptr) {
 

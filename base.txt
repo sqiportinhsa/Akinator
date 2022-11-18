@@ -6,7 +6,10 @@
 { "Ded" }
  }
 { "has dark hair"
+{ "do not wear glasses"
+{ "Aktimer" }
 { "Vova" }
+ }
 { "Yan" }
  }
  }
